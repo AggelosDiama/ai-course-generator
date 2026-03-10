@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+
+  # ─────────────────────────────────────────────
+  # 🧠 Your AI Course Architect App
+  # ─────────────────────────────────────────────
+  # python-app:
+  #   build:
+  #     context: ..
+  #     dockerfile: Dockerfile
+  #   image: course_architect
+  #   container_name: python_app
+  #   depends_on:
+  #     - litellm
+  #     - neo4j-db
+  #   ports:
+  #     - "8501:8501"
+  #   env_file:
+  #     - ../.env
+  #   networks:
+  #     - rag_net
+  #   restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # 🤖 Ollama Local LLM Server
+  # ─────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - rag_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # 📥 Auto-pull models on startup
+  # ─────────────────────────────────────────────
+  model-puller:
+    image: alpine/curl:latest
+    container_name: model-puller
+    depends_on:
+      - ollama
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama...';
+        until curl -s http://ollama:11434 > /dev/null; do sleep 2; done;
+        echo 'Pulling models...';
+        curl http://ollama:11434/api/pull -d '{ \"name\": \"llama3\" }';
+        curl http://ollama:11434/api/pull -d '{ \"name\": \"all-minilm\" }';
+        echo 'Models ready.';
+      "
+    networks:
+      - rag_net
+    restart: on-failure
+
+  # ─────────────────────────────────────────────
+  # 🔁 LiteLLM Proxy (OpenAI-compatible API)
+  # ─────────────────────────────────────────────
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    container_name: litellm-proxy
+    depends_on:
+      - ollama
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./config.yaml:/config.yaml
+    command: ["--config", "/config.yaml", "--port", "4000"]
+    networks:
+      - rag_net
+    restart: unless-stopped
+
+  # ─────────────────────────────────────────────
+  # 🗄️ Neo4j Graph Database
+  # ─────────────────────────────────────────────
+
+  neo4j-db:
+    image: neo4j:5-community
+    container_name: neo4j-db
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    environment:
+      - NEO4J_AUTH=neo4j/P@ssword1234
+      # --- ADD THESE THREE LINES ---
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*
+      # -----------------------------
+    networks:
+      - rag_net
+    restart: unless-stopped
+
+# ─────────────────────────────────────────────
+# 💾 Persistent Storage
+# ─────────────────────────────────────────────
+volumes:
+  ollama_data:
+  neo4j_data:
+
+# ─────────────────────────────────────────────
+# 🌐 Internal Network
+# ─────────────────────────────────────────────
+networks:
+  rag_net:
+    driver: bridge
