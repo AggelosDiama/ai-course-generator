@@ -9,6 +9,17 @@ class Neo4jManager:
             username=os.getenv("NEO4J_USERNAME", "neo4j"),
             password=os.getenv("NEO4J_PASSWORD", "P@ssword1234")
         )
+    
+    def get_all_course_metadata(self):
+        query = """
+        MATCH (c:Course)
+        RETURN c.title AS title, 
+            c.generated_title AS gen_title, 
+            c.expertise AS expertise, 
+            c.duration AS duration, 
+            c.interests AS interests
+        """
+        return self.graph.query(query)
 
     def save_course_structure(self, data, original_topic, expertise, duration, interests):
         self.graph.query("""
@@ -86,6 +97,18 @@ class Neo4jManager:
             OPTIONAL MATCH (m)-[:HAS_LESSON]->(l:Lesson)
             RETURN m.title as module, collect(l.title) as lessons
         """, params={"t": title})
+    
+    def reset_course_progress(self, title):
+        # This removes the 'score' and 'passed' properties from Quiz/Lesson nodes 
+        # linked to this specific course.
+        query = """
+        MATCH (c:Course)-[:HAS_MODULE]->(m)-[:HAS_LESSON]->(l)
+        WHERE c.title = $t OR c.generated_title = $t
+        SET m.quiz_score = 0,
+            m.quiz_passed = false,
+            l.completed = false
+        """
+        self.graph.query(query, params={"t": title})
 
 
     def delete_course(self, title):

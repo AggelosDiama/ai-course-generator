@@ -11,16 +11,16 @@ class LlmFactory:
 
         if model == "LOCAL":
             config = {
-                "api_key":  os.getenv("AI_API_KEY"),
-                "base_url": os.getenv("AI_ENDPOINT"),
-                "model":    os.getenv("AI_MODEL")
+                "api_key":  os.getenv("AI_API_KEY", "my-secret-key"),
+                "base_url": os.getenv("AI_ENDPOINT", "http://litellm:4000/v1"),
+                "model":    os.getenv("AI_MODEL", "gpt-4-turbo")
             }
             self.__create_llm(config)
 
         elif model == "GROQ":
             config = {
                 "api_key":  os.getenv("GROQ_API_KEY"),
-                "base_url": os.getenv("GROQ_ENDPOINT"),
+                "base_url": os.getenv("GROQ_ENDPOINT", "https://api.groq.com/openai/v1"),
                 "model":    os.getenv("GROQ_MODEL")
             }
             self.__create_llm(config)
@@ -36,7 +36,14 @@ class LlmFactory:
             api_key=config["api_key"],
             base_url=config["base_url"],
             model=config["model"],
-            temperature=self.temperature,
+            temperature=0, # Keep it at 0 for JSON tasks
+            model_kwargs={
+                "extra_body": {
+                    "num_ctx": 16384,           # Bigger window for research
+                    "response_format": {"type": "json_object"} # Force JSON
+                }
+            },
+            timeout=300 # 5 minute timeout for local heavy lifting
         )
 
     def __create_azure_llm(self):

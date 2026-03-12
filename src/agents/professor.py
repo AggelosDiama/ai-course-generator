@@ -3,7 +3,7 @@ import os
 from langchain_core.prompts import ChatPromptTemplate
 from database.neo4j_ops import Neo4jManager
 from utils.helpers import load_prompt
-from logger import get_logger
+from src.logger.logger import get_logger
 
 logger = get_logger("Professor")
 db = Neo4jManager()

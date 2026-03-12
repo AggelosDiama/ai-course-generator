@@ -1,16 +1,18 @@
 # 🎓 AI-Powered Adaptive Course Generator
 
-An intelligent educational platform that deconstructs complex topics into structured, multi-modal learning paths. Powered by **LangGraph** for agentic workflows and **Neo4j** for graph-based knowledge management.
+An intelligent, self-hosted educational platform that deconstructs complex topics into structured, multi-modal learning paths. Powered by **LangGraph** for agentic workflows and **Neo4j** for graph-based knowledge management.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Updates & Features
 
-- **Agentic Workflow**: Uses a tri-agent system (Deconstructor, Librarian, Professor) to research and create content.
-- **Graph-Based Storage**: Lessons and modules are stored as nodes in Neo4j, allowing for complex relationship mapping.
-- **Multi-Modal Content**: Generates theoretical explanations, professional video scripts, and module-level quizzes.
-- **Interactive Roadmap**: A smooth-scrolling sidebar navigation with real-time progress tracking and scoring.
-- **Tailored Expertise**: Content adjusts dynamically based on Beginner, Intermediate, or Advanced levels.
+* **Local-First AI**: Runs entirely on your machine using **Ollama (Llama 3.2)**—no API keys required for core generation.
+* **Unified Proxy**: Uses **LiteLLM** to provide an OpenAI-compatible interface for local models, ensuring high reliability and easy model swapping.
+* **Semantic Discovery**: A new **Discovery Agent** checks the Neo4j database before generation. If a semantically similar course exists for your expertise level, it loads instantly instead of re-generating.
+* **Agentic Workflow**: A four-agent system (Discovery, Deconstructor, Librarian, Professor) to research and create content.
+* **Graph-Based Storage**: Lessons and modules are stored as nodes in Neo4j, allowing for complex relationship mapping and progress persistence.
+* **Interactive Roadmap**: Smooth-scrolling sidebar navigation with real-time progress tracking and scoring.
+* **Progress Reset**: Ability to wipe quiz scores and "completed" status to retake courses from scratch.
 
 ---
 
@@ -18,61 +20,83 @@ An intelligent educational platform that deconstructs complex topics into struct
 
 * **Frontend**: [Streamlit](https://streamlit.io/)
 * **Orchestration**: [LangGraph](https://www.langchain.com/langgraph) & [LangChain](https://www.langchain.com/)
+* **Local LLM**: [Ollama](https://ollama.com/) (Llama 3.2)
+* **API Proxy**: [LiteLLM](https://github.com/BerriAI/litellm)
 * **Database**: [Neo4j](https://neo4j.com/) (Graph Database)
-* **LLM**: Groq / OpenAI (via LangChain)
+* **Package Manager**: [uv](https://github.com/astral-sh/uv) (Inside Docker for 10x faster builds)
 * **Tools**: DuckDuckGo Search, Wikipedia API, ArXiv
 
 ---
 
 ## 🏗️ Agent Architecture
 
-Our system utilizes three specialized agents working in a stateful graph:
-
-1.  **The Deconstructor**: Analyzes the topic and duration to build a skeletal course structure (Syllabus).
-2.  **The Librarian**: Conducts deep-dive research using web tools to gather factual "Research Dossiers" for every lesson.
-3.  **The Professor**: Synthesizes research into pedagogical Markdown content, video scripts, and assessments.
-
+1. **The Discovery Agent**: Semantically matches user intent against existing Neo4j records to prevent duplicate generation.
+2. **The Deconstructor**: Analyzes the topic and duration to build a skeletal course structure (Syllabus).
+3. **The Librarian**: Conducts deep-dive research using web tools to gather factual "Research Dossiers" for every lesson.
+4. **The Professor**: Synthesizes research into pedagogical Markdown content, video scripts, and assessments.
 
 ---
 
-## 🚦 Getting Started
+## 🚦 Getting Started (Dockerized)
+
+The entire stack is orchestrated via Docker Compose, including the LLM, Database, and Proxy.
 
 ### 1. Prerequisites
-* Python 3.11+
-* A running Neo4j instance
-* API Keys for your LLM provider
 
-### 2. Installation
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
+* **Important**: Assign at least **8GB of RAM** to Docker in *Settings > Resources*.
+
+### 2. Installation & Setup
+
 ```bash
 # Clone the repository
 git clone <your-repo-url>
 cd ai-course-generator
 
-# Create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+# Ensure your .env matches the Docker network (see below)
 
 ```
 
-### 3. Environment Setup
+### 3. Environment Setup (`.env`)
 
 Create a `.env` file in the root:
 
 ```env
-NEO4J_URI=bolt://localhost:7687
+AI_API_KEY=my-secret-key
+AI_ENDPOINT=http://litellm:4000/v1
+AI_MODEL=gpt-4-turbo
+
+NEO4J_URI=bolt://neo4j-db:7687
 NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=your_password
-GROQ_API_KEY=your_key
+NEO4J_PASSWORD=P@ssword1234
 
 ```
 
-### 4. Run the App
+### 4. Run with One Command
 
 ```bash
-streamlit run main.py
+docker compose -f docker/docker-compose.yml up --build
+
+```
+
+*Note: The first run will take a few minutes as it pulls the Llama 3.2 model (~2GB) and the all-minilm embedding model.*
+
+---
+
+## 📂 Project Structure
+
+```text
+.
+├── docker/                 # Docker Compose & LiteLLM configs
+├── src/
+│   ├── agents/             # Discovery, Librarian, etc.
+│   ├── database/           # Neo4j operations
+│   ├── graph/              # LangGraph definition
+│   ├── logger/             # Local logging & log files
+│   ├── ui/                 # Streamlit components
+│   └── main.py             # Entry point
+├── Dockerfile              # uv-optimized build
+└── requirements.txt        # Python dependencies
 
 ```
 
@@ -80,21 +104,8 @@ streamlit run main.py
 
 ## 📈 Future Roadmap
 
+* [x] **Local LLM Support**: Completed via Ollama.
+* [x] **Semantic Search**: Completed via Discovery Agent.
 * [ ] **PDF Export**: Generate a complete textbook from the course.
-* [ ] **Voice Synthesis**: Turn the "Video Scripts" into actual audio files.
-* [ ] **Flashcard Deck**: Auto-generate Anki-style flashcards for spaced repetition.
+* [ ] **Voice Synthesis**: Turn the "Video Scripts" into actual audio files using Bark or Coqui.
 
----
-
-## 📝 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-```
-
-### 💡 Final Tip:
-If you have a screenshot of your app, save it as `screenshot.png` in your folder and add `![App Screenshot](screenshot.png)` at the top of the README. Judges **love** seeing the UI before they even read the code!
-
-**Would you like me to generate the `requirements.txt` file for you based on the libraries we've used so far?**
-
-```

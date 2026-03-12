@@ -1,4 +1,4 @@
 .env
 .venv
 __pycache__/
-course_architect.log
+src/logger/*.log

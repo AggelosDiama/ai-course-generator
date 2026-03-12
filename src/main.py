@@ -1,9 +1,9 @@
 import streamlit as st
-from llm_factory import LlmFactory
+from src.llm_factory import LlmFactory
 from ui.styles import apply_custom_css
 from ui.components import render_sidebars, render_course_view
-from agents.graph import create_graph
-from logger import get_logger
+from src.graph.graph import create_graph
+from src.logger.logger import get_logger
 
 logger = get_logger("MainApp")
 
@@ -21,7 +21,7 @@ if "interests_input" not in st.session_state: st.session_state.interests_input =
 if "final_content" not in st.session_state: st.session_state.final_content = ""
 
 # 3. LLM & Workflow
-llm = LlmFactory(model="GROQ").get_llm()
+llm = LlmFactory(model="LOCAL").get_llm()
 app_graph = create_graph(llm)
 
 # 4. Sidebar
@@ -54,19 +54,41 @@ else:
         interests = st.text_area("Specific Interests", value=st.session_state.interests_input, height=100)
 
         if st.button("✨ Generate Course", use_container_width=True, key="primary-btn"):
-            if not topic:
-                st.error("Please enter a topic.")
-            else:
-                logger.info(f"User initiated generation: {topic} ({expertise})")
-                with st.status("Agents are building your course..."):
-                    inputs = {"topic": topic, "expertise": expertise, "duration": st.session_state.duration, "interests": interests}
-                    res = app_graph.invoke(inputs)
-                    st.session_state.final_content = res["final_content"]
-                    # logger.info(st.session_state.final_content)
-                st.session_state.current_course_title = topic
-                st.session_state.page = "view"
-                logger.info("Workflow execution successful.")
-                st.rerun()
+                if not topic:
+                    st.error("Please enter a topic.")
+                else:
+                    logger.info(f"User initiated process: {topic} ({expertise})")
+                    
+                    with st.status("Agents are analyzing and building your course...") as status:
+                        # 1. Set up inputs
+                        inputs = {
+                            "topic": topic, 
+                            "expertise": expertise, 
+                            "duration": st.session_state.duration, 
+                            "interests": interests
+                        }
+                        
+                        # 2. Run the LangGraph (Discovery -> Deconstructor -> Librarian -> Professor)
+                        res = app_graph.invoke(inputs)
+                        
+                        # 3. Handle the output
+                        # If discovery found a match, 'res' contains the existing title
+                        # If it generated a new one, 'res' contains the state from the Professor
+                        final_topic = res.get("topic", topic)
+                        
+                        if res.get("exists"):
+                            status.update(label="🎯 Found a matching course in the database!", state="complete")
+                            st.toast(f"Loading existing course: {final_topic}")
+                        else:
+                            status.update(label="✅ New course generated successfully!", state="complete")
+                            st.balloons()
+
+                    # 4. Redirect to View Page using the final identified topic
+                    st.session_state.current_course_title = final_topic
+                    st.session_state.page = "view"
+                    
+                    logger.info(f"Workflow finished for: {final_topic}")
+                    st.rerun()
 
     # if st.session_state.final_content:
     #     st.write("---")

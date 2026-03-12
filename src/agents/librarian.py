@@ -3,7 +3,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from database.neo4j_ops import Neo4jManager
 from .tools import search_wikipedia, search_duckduckgo, search_arxiv
 from utils.helpers import load_prompt
-from logger import get_logger
+from src.logger.logger import get_logger
 
 logger = get_logger("Librarian")
 db = Neo4jManager()

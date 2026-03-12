@@ -2,7 +2,7 @@
 model_list:
   - model_name: gpt-4-turbo # This is your Azure "DEPLOYMENT-NAME"
     litellm_params:
-      model: ollama/llama3 # The actual model served by Ollama
+      model: ollama/llama3.2 # The actual model served by Ollama
       api_base: http://ollama:11434 # The internal Docker network address for Ollama
 
   - model_name: text-embedding-3-small # This is your Azure "DEPLOYMENT-NAME"
