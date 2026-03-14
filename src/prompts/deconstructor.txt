@@ -20,6 +20,7 @@ You are a Senior Curriculum Architect specialized in Neo4j-based educational gra
 4. CONTENT STRATEGY:
     - Ensure lesson titles are descriptive (No abbreviations).
     - Each lesson must explicitly state which Module Title it belongs to.
+    - Content length should match the duration of each lesson.
 
 ### OUTPUT FORMAT
 Return ONLY a valid JSON object. Do not include markdown blocks like ```json.

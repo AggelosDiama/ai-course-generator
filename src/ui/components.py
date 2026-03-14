@@ -1,10 +1,20 @@
 import streamlit as st
 import json
 from database.neo4j_ops import Neo4jManager
-from src.logger.logger import get_logger
+from logger.logger import get_logger
 
 db = Neo4jManager()
 logger = get_logger("components")
+
+@st.dialog("Reset Course Progress")
+def confirm_reset_progress():
+    st.write("This will clear your quiz answers and score for this course.")
+    st.warning("You will have to retake the quizzes to regain your progress.")
+    if st.button("Yes, Reset Progress", type="primary", use_container_width=True):
+        st.session_state.score = 0
+        st.session_state.submitted_quizzes = {}
+        st.success("Progress cleared!")
+        st.rerun()
 
 @st.dialog("Clear All History")
 def confirm_clear_all():
@@ -39,7 +49,7 @@ def render_sidebars():
     with st.sidebar:
         if st.session_state.page == "view":
             # --- VIEW MODE SIDEBAR: ROADMAP & SCOREBOARD ---
-            if st.button("⬅️ Go Back For A New Course", use_container_width=True, type="secondary"):
+            if st.button("⬅️ New Course", use_container_width=True, type="primary"):
                 st.session_state.page = "generate"
                 st.session_state.score = 0
                 st.session_state.answered_questions = set()
@@ -73,6 +83,10 @@ def render_sidebars():
                 col1.metric("Correct", f"{current_s}/{total_q}")
                 col2.metric("Progress", f"{int(progress * 100)}%")
                 st.progress(progress)
+
+                # --- RESET BUTTON ADDED HERE ---
+                if st.button("🔄 Reset Progress", use_container_width=True):
+                    confirm_reset_progress()
             
             st.markdown("---")
             
@@ -121,9 +135,7 @@ def render_sidebars():
                 confirm_clear_all()
 
 def render_course_view():
-    course_id = st.session_state.current_course_title
-    data = db.get_course_by_title(course_id)
-
+    data = db.get_course_by_title(st.session_state.current_course_title)
     if not data:
         st.error("Course not found.")
         return
@@ -133,33 +145,12 @@ def render_course_view():
     if "submitted_quizzes" not in st.session_state: st.session_state.submitted_quizzes = {} # {mod_id: {q_idx: is_correct}}
 
     display_title = data.get('gen_title') or data['title']
+    st.title(display_title)
+    st.caption(f"Duration: {data['h']} Hours | Expertise: {data['diff']} ")
+    st.markdown("---")
 
-    col1, col2 = st.columns([3,1])
-    with col1:
-        st.title(display_title)
-        st.caption(f"Duration: {data['h']} Hours | Expertise: {data['diff']} ")
-        st.markdown("---")
-    with col2:
-        # The Reset Button
-        if st.button("🔄 Reset Progress", use_container_width=True, type="primary", help="Clear all quiz scores and start over"):
-            db.reset_course_progress(display_title)
-            
-            # Clear local session state related to quizzes
-            # Assuming you store scores in a dict like st.session_state.scores
-            if 'scores' in st.session_state:
-                st.session_state.scores = {}
-            
-            st.toast("Progress reset! You can retake the quizzes now.", icon="♻️")
-            st.rerun()
-
-    # Handle both stringified JSON and dicts
-    content = data.get('content')
-    course_json = json.loads(content) if isinstance(content, str) else content
-
-    if not course_json:
-        st.warning("This course has no content yet. The Professor might still be writing it.")
-        return
-
+    course_json = json.loads(data['content']) if isinstance(data['content'], str) else data['content']
+    # logger.info(course_json)
     for module in course_json.get('modules', []):
         mod_title = module.get('module_title')
         mod_id = mod_title.lower().replace(" ", "-")
@@ -198,7 +189,6 @@ def render_course_view():
                         st.write(f"**Q{idx+1}: {q['question']}**")
                         if res["is_correct"]:
                             st.success(f"Correct! You chose: {res['user_choice']}")
-                            st.balloons()
                         else:
                             st.error(f"Wrong. You chose: {res['user_choice']}. Correct Answer: {q['answer']}")
                 else:
@@ -214,12 +204,23 @@ def render_course_view():
                         if submit_quiz:
                             module_results = {}
                             new_score_gain = 0
+                            # logger.info(quiz_data)
                             for idx, q in enumerate(quiz_data):
-                                is_correct = user_selections[idx] == q['answer']
-                                if is_correct: new_score_gain += 1
+                                # 1. Normalize both strings to prevent hidden whitespace or case bugs
+                                user_answer = str(user_selections[idx]).strip().lower()
+                                correct_answer = str(q['answer']).strip().lower()
+
+                                # logger.info(f"User Answer: {user_answer}")
+                                # logger.info(f"Correct Answer: {correct_answer}")
+
+                                is_correct = user_answer == correct_answer
+                                
+                                if is_correct: 
+                                    new_score_gain += 1
+                                    
                                 module_results[idx] = {
                                     "is_correct": is_correct,
-                                    "user_choice": user_selections[idx]
+                                    "user_choice": user_selections[idx] # Keep the original for display
                                 }
                             
                             # Update Global State

@@ -21,7 +21,7 @@ if "interests_input" not in st.session_state: st.session_state.interests_input =
 if "final_content" not in st.session_state: st.session_state.final_content = ""
 
 # 3. LLM & Workflow
-llm = LlmFactory(model="LOCAL").get_llm()
+llm = LlmFactory(model="GROQ").get_llm()
 app_graph = create_graph(llm)
 
 # 4. Sidebar
@@ -37,7 +37,7 @@ else:
     st.subheader("Powered by Local Multi-Agent AI")
 
     with st.container(border=True, key="container"):
-        topic = st.text_input("What do you want to learn? *", value=st.session_state.topic_input, help="Choose a topic you're interested in learning about.")
+        topic = st.text_input("What do you want to learn? *", value=st.session_state.topic_input, placeholder="e.g., Python programming", help="Choose a topic you're interested in learning about.")
         
         col1, col2 = st.columns(2, vertical_alignment="bottom")
         with col1:
@@ -51,7 +51,7 @@ else:
             with d_col3:
                 if st.button("+6", key="s2"): st.session_state.duration += 6; st.rerun()
 
-        interests = st.text_area("Specific Interests", value=st.session_state.interests_input, height=100)
+        interests = st.text_area("Specific Interests", value=st.session_state.interests_input, placeholder="Focus more on this aspect, e.g. AI Agents", height=100)
 
         if st.button("✨ Generate Course", use_container_width=True, key="primary-btn"):
                 if not topic:

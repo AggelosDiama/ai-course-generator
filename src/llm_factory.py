@@ -37,12 +37,6 @@ class LlmFactory:
             base_url=config["base_url"],
             model=config["model"],
             temperature=0, # Keep it at 0 for JSON tasks
-            model_kwargs={
-                "extra_body": {
-                    "num_ctx": 16384,           # Bigger window for research
-                    "response_format": {"type": "json_object"} # Force JSON
-                }
-            },
             timeout=300 # 5 minute timeout for local heavy lifting
         )
 
