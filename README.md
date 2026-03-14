@@ -16,16 +16,16 @@ An intelligent, self-hosted educational platform that deconstructs complex topic
 ---
 
 ## 📸 Interface Gallery
-![Homepage](screenshots/Homepage.png)
 
-| 🏗️ Agentic Workflow | 📖 Course Content |
-| :---: | :---: |
-| ![Generation Flow](screenshots/Screenshot 2026-03-15 at 12.21.57 AM.png) | ![Lesson View](screenshots/Screenshot 2026-03-15 at 12.21.57 AM.png) |
-| *Real-time status updates using `st.status` as agents collaborate.* | *Multi-modal lessons with Markdown and Video Scripts.* |
 
-| 🏆 Progress Tracking | 🕸️ Knowledge Graph |
+| 🏗️ Homepage | 📖 Course Content |
 | :---: | :---: |
-| ![Quiz & Progress](screenshots/Screenshot 2026-03-15 at 12.21.57 AM.png) | ![Neo4j Graph](screenshots/Screenshot 2026-03-15 at 12.21.57 AM.png) |
+| ![Homepage](screenshots/Homepage.png) | ![Course View](screenshots/Course_view.png) |
+| *Easy inputs, not putting the user to prompt.* | *Course with easy navigation from the sidebar* |
+
+| Video Script & Quizes | 🕸️ Knowledge Graph |
+| :---: | :---: |
+| ![Video Script & Quizes](screenshots/Video_script_and_quiz.png) | ![Neo4j Graph](screenshots/Neo4j_graph.png) |
 | *Interactive quizzes with string-matching logic and reset capabilities.* | *Visualizing course structure and relationships within Neo4j.* |
 
 ---
