@@ -18,15 +18,25 @@ An intelligent, self-hosted educational platform that deconstructs complex topic
 ## 📸 Interface Gallery
 
 
-| 🏗️ Homepage | 📖 Course Content |
-| :---: | :---: |
-| ![Homepage](screenshots/Homepage.png) | ![Course View](screenshots/Course_view.png) |
-| *Easy inputs, not putting the user to prompt.* | *Course with easy navigation from the sidebar* |
+| 🏗️ Homepage |
+| :---: | 
+| ![Homepage](screenshots/Homepage.png) |
+| *Easy inputs, not putting the user to prompt.* |
 
-| Video Script & Quizes | 🕸️ Knowledge Graph |
-| :---: | :---: |
-| ![Video Script & Quizes](screenshots/Video_script_and_quiz.png) | ![Neo4j Graph](screenshots/Neo4j_graph.png) |
-| *Interactive quizzes with string-matching logic and reset capabilities.* | *Visualizing course structure and relationships within Neo4j.* |
+| 📖 Course Content |
+| :---: |
+| ![Course View](screenshots/Course_view.png) |
+| *Course with easy navigation from the sidebar* |
+
+| Video Script & Quizes |
+| :---: |
+| ![Video Script & Quizes](screenshots/Video_script_and_quiz.png) |
+| *Interactive quizzes with string-matching logic and reset capabilities.* |
+
+| 🕸️ Knowledge Graph |
+| :---: |
+| ![Neo4j Graph](screenshots/Neo4j_graph.png) |
+| *Visualizing course structure and relationships within Neo4j.* |
 
 ---
 
