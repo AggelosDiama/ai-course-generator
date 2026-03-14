@@ -16,6 +16,7 @@ An intelligent, self-hosted educational platform that deconstructs complex topic
 ---
 
 ## 📸 Interface Gallery
+![Homepage](screenshots/Homepage.png)
 
 | 🏗️ Agentic Workflow | 📖 Course Content |
 | :---: | :---: |
